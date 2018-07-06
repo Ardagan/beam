@@ -147,7 +147,7 @@ public class PAssertTest implements Serializable {
 
   @Test
   public void intentionalFail() throws IOException {
-    assertEquals("Intentional fail", 0, 1);
+//    assertEquals("Intentional fail", 0, 1);
   }
 
   @Test
