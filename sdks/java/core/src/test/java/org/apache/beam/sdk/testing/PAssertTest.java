@@ -146,6 +146,11 @@ public class PAssertTest implements Serializable {
   }
 
   @Test
+  public void intentionalFail() throws IOException {
+    assertEquals("Intentional fail", 0, 1);
+  }
+
+  @Test
   public void testSuccessEncodedDecoded() throws IOException {
     SuccessOrFailure success = SuccessOrFailure.success();
     SerializableCoder<SuccessOrFailure> coder = SerializableCoder.of(SuccessOrFailure.class);
