@@ -110,9 +110,13 @@ if (isCIBuild) {
 apply plugin: "org.nosphere.apache.rat"
 
 rat {
+  // Set input directory to that of the root project instead of the CWD. This
+  // makes .gitignore rules (added below) work properly.
+  inputDir = project.rootDir
+
   def exclusions = [
     // Ignore files we track but do not distribute
-    ".github/**/*",
+    "**/.github/**/*",
 
     "**/package-list",
     "**/user.avsc",
@@ -137,8 +141,6 @@ rat {
     // Ruby build files
     "**/Gemfile.lock",
     "**/Rakefile",
-    "**/_config.yml",
-    "**/_config_test.yml",
     "**/.htaccess",
     "website/src/_sass/_bootstrap.scss",
     "website/src/_sass/bootstrap/**/*",
@@ -147,6 +149,7 @@ rat {
 
     // Ignore ownership files
     "ownership/**/*",
+    "**/OWNERS",
   ]
 
   // Add .gitignore excludes to the Apache Rat exclusion list. We re-create the behavior
@@ -184,6 +187,7 @@ task javaPreCommit() {
   dependsOn ":beam-sdks-java-core:buildDependents"
   dependsOn ":beam-examples-java:preCommit"
   dependsOn ":beam-sdks-java-extensions-sql-jdbc:preCommit"
+  dependsOn ":beam-sdks-java-javadoc:allJavadoc"
 }
 
 task javaPostCommit() {
@@ -191,6 +195,7 @@ task javaPostCommit() {
   dependsOn ":beam-runners-google-cloud-dataflow-java:postCommit"
   dependsOn ":beam-sdks-java-io-google-cloud-platform:postCommit"
   dependsOn ":beam-sdks-java-extensions-sql:postCommit"
+  dependsOn ":beam-sdks-java-extensions-sql-jdbc:postCommit"
 }
 
 task goPreCommit() {
@@ -231,6 +236,12 @@ task pythonPreCommit() {
 task pythonPostCommit() {
   dependsOn ":beam-sdks-python:postCommit"
 }
+
+task websitePreCommit() {
+  dependsOn ":rat"
+  dependsOn ":beam-website:preCommit"
+}
+
 
 task runBeamDependencyCheck() {
   dependsOn ":dependencyUpdates"
