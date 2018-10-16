@@ -32,7 +32,6 @@ import org.apache.beam.sdk.schemas.Schema;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
-import org.apache.beam.sdk.transforms.windowing.BoundedWindow;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionList;
 import org.apache.beam.sdk.values.Row;
@@ -72,12 +71,12 @@ public class BeamCalcRel extends Calc implements BeamRelNode {
 
       BeamSqlExpressionExecutor executor = new BeamSqlFnExecutor(BeamCalcRel.this.getProgram());
 
-      Schema schema = CalciteUtils.toBeamSchema(rowType);
+      Schema schema = CalciteUtils.toSchema(rowType);
       PCollection<Row> projectStream =
           upstream
-              .apply(ParDo.of(new CalcFn(executor, CalciteUtils.toBeamSchema(rowType))))
+              .apply(ParDo.of(new CalcFn(executor, CalciteUtils.toSchema(rowType))))
               .setRowSchema(schema);
-      projectStream.setRowSchema(CalciteUtils.toBeamSchema(getRowType()));
+      projectStream.setRowSchema(CalciteUtils.toSchema(getRowType()));
 
       return projectStream;
     }
@@ -112,12 +111,11 @@ public class BeamCalcRel extends Calc implements BeamRelNode {
     }
 
     @ProcessElement
-    public void processElement(ProcessContext c, BoundedWindow window) {
+    public void processElement(ProcessContext c) {
       Row inputRow = c.element();
       @Nullable
       List<Object> rawResultValues =
-          executor.execute(
-              inputRow, window, BeamSqlExpressionEnvironments.forRow(inputRow, window));
+          executor.execute(inputRow, null, BeamSqlExpressionEnvironments.forRow(inputRow, null));
 
       if (rawResultValues != null) {
         List<Object> castResultValues =

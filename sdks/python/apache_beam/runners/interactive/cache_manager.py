@@ -20,9 +20,8 @@ from __future__ import division
 from __future__ import print_function
 
 import collections
-import glob
+import datetime
 import os
-import shutil
 import tempfile
 import urllib
 
@@ -30,6 +29,14 @@ import apache_beam as beam
 from apache_beam import coders
 from apache_beam.io import filesystems
 from apache_beam.transforms import combiners
+
+try:                    # Python 3
+  unquote_to_bytes = urllib.parse.unquote_to_bytes
+  quote = urllib.parse.quote
+except AttributeError:  # Python 2
+  # pylint: disable=deprecated-urllib-function
+  unquote_to_bytes = urllib.unquote
+  quote = urllib.quote
 
 
 class CacheManager(object):
@@ -79,23 +86,26 @@ class CacheManager(object):
     raise NotImplementedError
 
 
-class LocalFileCacheManager(CacheManager):
+class FileBasedCacheManager(CacheManager):
   """Maps PCollections to local temp files for materialization."""
 
-  def __init__(self, temp_dir=None):
-    self._temp_dir = temp_dir or tempfile.mkdtemp(
-        prefix='interactive-temp-', dir=os.environ.get('TEST_TMPDIR', None))
+  def __init__(self, cache_dir=None):
+    if cache_dir:
+      self._cache_dir = filesystems.FileSystems.join(
+          cache_dir,
+          datetime.datetime.now().strftime("cache-%y-%m-%d-%H:%M:%S"))
+    else:
+      self._cache_dir = tempfile.mkdtemp(
+          prefix='interactive-temp-', dir=os.environ.get('TEST_TMPDIR', None))
     self._versions = collections.defaultdict(lambda: self._CacheVersion())
 
   def exists(self, *labels):
-    return bool(
-        filesystems.FileSystems.match([self._glob_path(*labels)],
-                                      limits=[1])[0].metadata_list)
+    return bool(self._match(*labels))
 
   def _latest_version(self, *labels):
     timestamp = 0
-    for path in glob.glob(self._glob_path(*labels)):
-      timestamp = max(timestamp, os.path.getmtime(path))
+    for path in self._match(*labels):
+      timestamp = max(timestamp, filesystems.FileSystems.last_updated(path))
     result = self._versions["-".join(labels)].get_version(timestamp)
     return result
 
@@ -105,8 +115,8 @@ class LocalFileCacheManager(CacheManager):
 
     def _read_helper():
       coder = SafeFastPrimitivesCoder()
-      for path in glob.glob(self._glob_path(*labels)):
-        for line in open(path):
+      for path in self._match(*labels):
+        for line in filesystems.FileSystems.open(path):
           yield coder.decode(line.strip())
     result, version = list(_read_helper()), self._latest_version(*labels)
     return result, version
@@ -120,14 +130,19 @@ class LocalFileCacheManager(CacheManager):
                                coder=SafeFastPrimitivesCoder())._sink
 
   def cleanup(self):
-    if os.path.exists(self._temp_dir):
-      shutil.rmtree(self._temp_dir)
+    if filesystems.FileSystems.exists(self._cache_dir):
+      filesystems.FileSystems.delete([self._cache_dir])
 
   def _glob_path(self, *labels):
     return self._path(*labels) + '-*-of-*'
 
   def _path(self, *labels):
-    return filesystems.FileSystems.join(self._temp_dir, *labels)
+    return filesystems.FileSystems.join(self._cache_dir, *labels)
+
+  def _match(self, *labels):
+    match = filesystems.FileSystems.match([self._glob_path(*labels)])
+    assert len(match) == 1
+    return [metadata.path for metadata in match[0].metadata_list]
 
   class _CacheVersion(object):
     """This class keeps track of the timestamp and the corresponding version."""
@@ -159,35 +174,35 @@ class ReadCache(beam.PTransform):
 
   def expand(self, pbegin):
     # pylint: disable=expression-not-assigned
-    return pbegin | 'Load%s' % self._label >> beam.io.Read(
+    return pbegin | 'Read' >> beam.io.Read(
         self._cache_manager.source('full', self._label))
 
 
 class WriteCache(beam.PTransform):
   """A PTransform that writes the PCollections to the cache."""
-  def __init__(self, cache_manager, sample=False, sample_size=0):
+  def __init__(self, cache_manager, label, sample=False, sample_size=0):
     self._cache_manager = cache_manager
+    self._label = label
     self._sample = sample
     self._sample_size = sample_size
 
-  def expand(self, pcolls_to_write):
-    for label, pcoll in pcolls_to_write.items():
-      prefix = 'sample' if self._sample else 'full'
-      if not self._cache_manager.exists(prefix, label):
-        if self._sample:
-          pcoll |= 'Sample%s' % label >> (
-              combiners.Sample.FixedSizeGlobally(self._sample_size)
-              | beam.FlatMap(lambda sample: sample))
-        # pylint: disable=expression-not-assigned
-        pcoll | 'Cache%s' % label >> beam.io.Write(
-            self._cache_manager.sink(prefix, label))
+  def expand(self, pcoll):
+    prefix = 'sample' if self._sample else 'full'
+    if self._sample:
+      pcoll |= 'Sample' >> (
+          combiners.Sample.FixedSizeGlobally(self._sample_size)
+          | beam.FlatMap(lambda sample: sample))
+    # pylint: disable=expression-not-assigned
+    return pcoll | 'Write' >> beam.io.Write(
+        self._cache_manager.sink(prefix, self._label))
 
 
 class SafeFastPrimitivesCoder(coders.Coder):
   """This class add an quote/unquote step to escape special characters."""
+  # pylint: disable=deprecated-urllib-function
 
   def encode(self, value):
-    return urllib.quote(coders.coders.FastPrimitivesCoder().encode(value))
+    return quote(coders.coders.FastPrimitivesCoder().encode(value))
 
   def decode(self, value):
-    return coders.coders.FastPrimitivesCoder().decode(urllib.unquote(value))
+    return coders.coders.FastPrimitivesCoder().decode(unquote_to_bytes(value))

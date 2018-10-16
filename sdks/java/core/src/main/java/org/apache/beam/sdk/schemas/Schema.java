@@ -30,6 +30,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -47,6 +48,9 @@ public class Schema implements Serializable {
   // Cache the hashCode, so it doesn't have to be recomputed. Schema objects are immutable, so this
   // is correct.
   private final int hashCode;
+  // Every SchemaCoder has a UUID. The schemas created with the same UUID are guaranteed to be
+  // equal, so we can short circuit comparison.
+  @Nullable private UUID uuid = null;
 
   /** Builder class for building {@link Schema} objects. */
   public static class Builder {
@@ -163,6 +167,10 @@ public class Schema implements Serializable {
     this.fields = fields;
     int index = 0;
     for (Field field : fields) {
+      if (fieldIndices.get(field.getName()) != null) {
+        throw new IllegalArgumentException(
+            "Duplicate field " + field.getName() + " added to schema");
+      }
       fieldIndices.put(field.getName(), index++);
     }
     this.hashCode = Objects.hash(fieldIndices, fields);
@@ -172,13 +180,31 @@ public class Schema implements Serializable {
     return Schema.builder().addFields(fields).build();
   }
 
+  /** Set this schema's UUID. All schemas with the same UUID must be guaranteed to be identical. */
+  public void setUUID(UUID uuid) {
+    this.uuid = uuid;
+  }
+
+  /** Get this schema's UUID. */
+  @Nullable
+  public UUID getUUID() {
+    return this.uuid;
+  }
+
   /** Returns true if two Schemas have the same fields in the same order. */
   @Override
   public boolean equals(Object o) {
-    if (!(o instanceof Schema)) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
       return false;
     }
     Schema other = (Schema) o;
+    // If both schemas have a UUID set, we can simply compare the UUIDs.
+    if (uuid != null && other.uuid != null) {
+      return Objects.equals(uuid, other.uuid);
+    }
     return Objects.equals(fieldIndices, other.fieldIndices)
         && Objects.equals(getFields(), other.getFields());
   }
@@ -506,17 +532,18 @@ public class Schema implements Serializable {
 
     public abstract Builder toBuilder();
 
+    /** Builder for {@link Field}. */
     @AutoValue.Builder
-    abstract static class Builder {
-      abstract Builder setName(String name);
+    public abstract static class Builder {
+      public abstract Builder setName(String name);
 
-      abstract Builder setDescription(String description);
+      public abstract Builder setDescription(String description);
 
-      abstract Builder setType(FieldType fieldType);
+      public abstract Builder setType(FieldType fieldType);
 
-      abstract Builder setNullable(Boolean nullable);
+      public abstract Builder setNullable(Boolean nullable);
 
-      abstract Field build();
+      public abstract Field build();
     }
 
     /** Return's a field with the give name and type. */

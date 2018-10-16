@@ -37,14 +37,11 @@ import zlib
 from builtins import object
 from builtins import zip
 
-from future import standard_library
 from future.utils import with_metaclass
 from past.builtins import long
 from past.builtins import unicode
 
 from apache_beam.utils.plugin import BeamPlugin
-
-standard_library.install_aliases()
 
 logger = logging.getLogger(__name__)
 
@@ -684,6 +681,20 @@ class FileSystem(with_metaclass(abc.ABCMeta, BeamPlugin)):
       path: string filepath of file.
 
     Returns: int size of file according to the FileSystem.
+
+    Raises:
+      ``BeamIOError`` if path doesn't exist.
+    """
+    raise NotImplementedError
+
+  @abc.abstractmethod
+  def last_updated(self, path):
+    """Get UNIX Epoch time in seconds on the FileSystem.
+
+    Args:
+      path: string path of file.
+
+    Returns: float UNIX Epoch time
 
     Raises:
       ``BeamIOError`` if path doesn't exist.
