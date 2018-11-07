@@ -45,6 +45,7 @@ public abstract class MetricsTranslation {
     for (BeamFnApi.Metrics.User userMetricUpdate : userMetricUpdates) {
       MetricKey metricKey =
           MetricKey.create(ptransformName, metricNameFromProto(userMetricUpdate.getMetricName()));
+
       switch (userMetricUpdate.getDataCase()) {
         case COUNTER_DATA:
           counterUpdates.add(

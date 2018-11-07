@@ -139,3 +139,11 @@ checkstyleMain.enabled = false
 checkstyleTest.enabled = false
 //TODO(BEAM-5659): javadoc task should be enabled in the future.
 javadoc.enabled = false
+
+
+task helloWorld {
+  doLast {
+    println project(":beam-runners-google-cloud-dataflow-java-fn-api-worker").shadowJar.archivePath
+  }
+}
+

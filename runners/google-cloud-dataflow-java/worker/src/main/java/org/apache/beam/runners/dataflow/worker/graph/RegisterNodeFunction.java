@@ -87,6 +87,8 @@ import org.apache.beam.sdk.values.TupleTag;
 import org.apache.beam.sdk.values.WindowingStrategy;
 import org.apache.beam.vendor.protobuf.v3.com.google.protobuf.ByteString;
 import org.apache.beam.vendor.protobuf.v3.com.google.protobuf.InvalidProtocolBufferException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Converts a {@link Network} representation of {@link MapTask} destined for the SDK harness into an
@@ -95,6 +97,8 @@ import org.apache.beam.vendor.protobuf.v3.com.google.protobuf.InvalidProtocolBuf
  * <p>Testing of all the layers of translation are performed via local service runner tests.
  */
 public class RegisterNodeFunction implements Function<MutableNetwork<Node, Edge>, Node> {
+  private static final Logger LOG = LoggerFactory.getLogger(RegisterNodeFunction.class);
+
   /** Must match declared fields within {@code ProcessBundleHandler}. */
   private static final String DATA_INPUT_URN = "urn:org.apache.beam:source:runner:0.1";
 
@@ -427,6 +431,9 @@ public class RegisterNodeFunction implements Function<MutableNetwork<Node, Edge>
       }
       processBundleDescriptor.putTransforms(node.getPrimitiveTransformId(), pTransform.build());
     }
+
+    LOG.error("migryz ProcessBundleDescriptor: " + processBundleDescriptor.toString());
+    LOG.error("migryz ptransformIdToNameContexts" + ptransformIdToNameContexts.toString());
 
     return RegisterRequestNode.create(
         RegisterRequest.newBuilder().addProcessBundleDescriptor(processBundleDescriptor).build(),

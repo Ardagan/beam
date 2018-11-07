@@ -402,6 +402,7 @@ class BundleProcessor(object):
       op.reset()
 
   def process_bundle(self, instruction_id):
+    logging.warn("migryz, process_bundle")
     expected_inputs = []
     for op in self.ops.values():
       if isinstance(op, DataOutputOperation):
@@ -443,6 +444,7 @@ class BundleProcessor(object):
       self.state_sampler.stop_if_still_running()
 
   def metrics(self):
+    logging.warn("migryz metrics output test dummy todo")
     # DEPRECATED
     return beam_fn_api_pb2.Metrics(
         # TODO(robertwb): Rename to progress?
@@ -474,6 +476,7 @@ class BundleProcessor(object):
     return metrics
 
   def monitoring_infos(self):
+    logging.warn("migryz, updating monitoring_infos")
     """Returns the list of MonitoringInfos collected processing this bundle."""
     # Construct a new dict first to remove duplciates.
     all_monitoring_infos_dict = {}

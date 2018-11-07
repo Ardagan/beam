@@ -263,20 +263,47 @@ public class WorkItemStatusClient {
     return status;
   }
 
+  static void dumpCounterUpdateList(Iterable<CounterUpdate> src, String comment) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("migryz dumping CounterUpdates " + comment + "\n");
+    src.forEach(x -> sb.append(x.toString() + "\n"));
+    LOG.error(sb.toString());
+  }
+
   @VisibleForTesting
   synchronized void populateCounterUpdates(WorkItemStatus status) {
     if (worker == null) {
       return;
     }
 
+    // TODOmigryz Dump all counters that we receive in each step.
+    // I need to do this because we do report msec counters, but they don't seem to come from
+    // worker.extractMetricUpdates as was expected initially.
     boolean isFinalUpdate = Boolean.TRUE.equals(status.getCompleted());
-    ImmutableList.Builder<CounterUpdate> counterUpdatesBuilder = ImmutableList.builder();
-    counterUpdatesBuilder.addAll(extractCounters(worker.getOutputCounters()));
-    counterUpdatesBuilder.addAll(extractMetrics(isFinalUpdate));
-    counterUpdatesBuilder.addAll(extractMsecCounters(isFinalUpdate));
-    counterUpdatesBuilder.addAll(worker.extractMetricUpdates());
+    ImmutableList.Builder<CounterUpdate> counterUpdatesListBuilder = ImmutableList.builder();
+    Iterable<CounterUpdate> c;
+    c = extractCounters(worker.getOutputCounters());
+    dumpCounterUpdateList(c, "extractCounters(worker.getOutputCounters)");
+    counterUpdatesListBuilder.addAll(c);
+    c = extractMetrics(isFinalUpdate);
+    dumpCounterUpdateList(c, "extractMetrics(isFinalUpdate)");
+    counterUpdatesListBuilder.addAll(c);
+    c = extractMsecCounters(isFinalUpdate);
+    dumpCounterUpdateList(c, "extractMsecCounters(isFinalUpdate)");
+    counterUpdatesListBuilder.addAll(c);
 
-    ImmutableList<CounterUpdate> counterUpdates = counterUpdatesBuilder.build();
+    //todomigryz should only process deprecated metrics if MonitoringInfos are missing.
+    c = worker.extractMetricUpdates();
+    dumpCounterUpdateList(c, "worker.extractMetricUpdates()");
+    counterUpdatesListBuilder.addAll(c);
+    // todomigryz add translation logic here
+    counterUpdatesListBuilder.addAll(c);
+    // counterUpdatesListBuilder.addAll(extractCounters(worker.getOutputCounters()));
+    // counterUpdatesListBuilder.addAll(extractMetrics(isFinalUpdate));
+    // counterUpdatesListBuilder.addAll(extractMsecCounters(isFinalUpdate));
+    // counterUpdatesListBuilder.addAll(worker.extractMetricUpdates());
+
+    ImmutableList<CounterUpdate> counterUpdates = counterUpdatesListBuilder.build();
     status.setCounterUpdates(counterUpdates);
   }
 

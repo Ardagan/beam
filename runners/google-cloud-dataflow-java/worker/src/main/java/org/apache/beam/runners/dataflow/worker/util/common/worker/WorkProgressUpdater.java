@@ -331,7 +331,7 @@ public abstract class WorkProgressUpdater {
    * Reports the current work progress to the worker service. Holds lock on executor during call so
    * that checkpointState can be accessed.
    *
-   * @throws an InterruptedException to indicate that the WorkItem has been aborted.
+   * @throws InterruptedException to indicate that the WorkItem has been aborted.
    */
   @GuardedBy("executor")
   protected abstract void reportProgressHelper() throws Exception;

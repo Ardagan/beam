@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 /** An executor for a source operation, defined by a {@code SourceOperationRequest}. */
 public class WorkerCustomSourceOperationExecutor implements SourceOperationExecutor {
+
   private static final Logger LOG =
       LoggerFactory.getLogger(WorkerCustomSourceOperationExecutor.class);
   private final PipelineOptions options;

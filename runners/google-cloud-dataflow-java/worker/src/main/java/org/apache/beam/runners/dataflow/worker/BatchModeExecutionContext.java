@@ -51,9 +51,13 @@ import org.apache.beam.sdk.util.WeightedValue;
 import org.apache.beam.sdk.values.PCollectionView;
 import org.joda.time.Instant;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /** {@link DataflowExecutionContext} for use in batch mode. */
 public class BatchModeExecutionContext
     extends DataflowExecutionContext<BatchModeExecutionContext.StepContext> {
+  private static final Logger LOG = LoggerFactory.getLogger(BatchModeExecutionContext.class);
 
   protected final Cache<?, WeightedValue<?>> dataCache;
   protected final Cache<?, ?> logicalReferenceCache;
@@ -456,6 +460,7 @@ public class BatchModeExecutionContext
    * user-defined metrics reported within this execution context.
    */
   public Iterable<CounterUpdate> extractMetricUpdates(boolean isFinalUpdate) {
+    LOG.debug("migryz BatchModeExecutionContext::extractMetricUpdates");
     return containerRegistry
         .getContainers()
         .transformAndConcat(

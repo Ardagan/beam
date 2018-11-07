@@ -211,8 +211,7 @@ public class BatchDataflowWorker implements Closeable {
           initializeAndStartDebugCaptureManager(options, statusPages.getDebugCapturePages());
     }
 
-    // TODO: this conditional -> two implementations of common interface, or
-    // param/injection
+    // TODO: this conditional -> two implementations of common interface, or param/injection
     if (DataflowRunner.hasExperiment(options, "beam_fn_api")) {
       Function<MutableNetwork<Node, Edge>, Node> sdkFusedStage =
           pipeline == null
@@ -301,6 +300,7 @@ public class BatchDataflowWorker implements Closeable {
   @VisibleForTesting
   boolean doWork(WorkItem workItem, WorkItemStatusClient workItemStatusClient) throws IOException {
     LOG.debug("Executing: {}", workItem);
+    // throw new IOException("MIGRYZ TESTING INTENDED");
 
     DataflowWorkExecutor worker = null;
     SdkWorkerHarness sdkWorkerHarness = sdkHarnessRegistry.getAvailableWorkerAndAssignWork();
@@ -363,7 +363,6 @@ public class BatchDataflowWorker implements Closeable {
       executeWork(worker, progressUpdater);
       workItemStatusClient.reportSuccess();
       return true;
-
     } catch (Throwable e) {
       workItemStatusClient.reportError(e);
       return false;
