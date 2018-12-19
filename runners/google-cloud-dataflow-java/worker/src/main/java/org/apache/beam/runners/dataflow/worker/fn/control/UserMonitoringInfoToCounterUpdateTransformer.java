@@ -21,7 +21,6 @@ import com.google.api.services.dataflow.model.CounterMetadata;
 import com.google.api.services.dataflow.model.CounterStructuredName;
 import com.google.api.services.dataflow.model.CounterStructuredNameAndMetadata;
 import com.google.api.services.dataflow.model.CounterUpdate;
-import com.google.common.annotations.VisibleForTesting;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.beam.model.fnexecution.v1.BeamFnApi;
@@ -114,11 +113,11 @@ class UserMonitoringInfoToCounterUpdateTransformer
 
     DataflowStepContext stepContext = transformIdMapping.get(ptransform);
     name.setName(
-        new CounterStructuredName()
-            .setOrigin(Origin.USER.toString())
-            .setName(counterName)
-            .setOriginalStepName(stepContext.getNameContext().originalName())
-            .setOriginNamespace(counterNamespace))
+            new CounterStructuredName()
+                .setOrigin(Origin.USER.toString())
+                .setName(counterName)
+                .setOriginalStepName(stepContext.getNameContext().originalName())
+                .setOriginNamespace(counterNamespace))
         .setMetadata(new CounterMetadata().setKind("SUM"));
 
     return new CounterUpdate()
@@ -127,9 +126,7 @@ class UserMonitoringInfoToCounterUpdateTransformer
         .setInteger(DataflowCounterUpdateExtractor.longToSplitInt(value));
   }
 
-  /**
-   * @return MonitoringInfo urns prefix that this transformer can convert to CounterUpdates.
-   */
+  /** @return MonitoringInfo urns prefix that this transformer can convert to CounterUpdates. */
   public String getSupportedUrnPrefix() {
     return BEAM_METRICS_USER_PREFIX;
   }

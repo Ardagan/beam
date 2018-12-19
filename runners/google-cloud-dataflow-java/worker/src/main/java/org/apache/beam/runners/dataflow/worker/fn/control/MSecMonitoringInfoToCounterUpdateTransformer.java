@@ -53,9 +53,7 @@ public class MSecMonitoringInfoToCounterUpdateTransformer
     urnToCounterNameMapping = createKnownUrnToCounterNameMapping();
   }
 
-  /**
-   * Allows to inject members for cleaner testing.
-   */
+  /** Allows to inject members for cleaner testing. */
   @VisibleForTesting
   protected MSecMonitoringInfoToCounterUpdateTransformer(
       SpecMonitoringInfoValidator specValidator,
@@ -77,6 +75,7 @@ public class MSecMonitoringInfoToCounterUpdateTransformer
 
   /**
    * Validates provided monitoring info against specs and common safety checks.
+   *
    * @param monitoringInfo to validate.
    * @return Optional.empty() all validation checks are passed. Optional with error text otherwise.
    * @throws RuntimeException if received unexpected urn.
@@ -133,9 +132,7 @@ public class MSecMonitoringInfoToCounterUpdateTransformer
         .setInteger(DataflowCounterUpdateExtractor.longToSplitInt(value));
   }
 
-  /**
-   * @return iterable of Urns that this transformer can convert to CounterUpdates.
-   */
+  /** @return iterable of Urns that this transformer can convert to CounterUpdates. */
   public Iterable<String> getSupportedUrns() {
     return this.urnToCounterNameMapping.keySet();
   }

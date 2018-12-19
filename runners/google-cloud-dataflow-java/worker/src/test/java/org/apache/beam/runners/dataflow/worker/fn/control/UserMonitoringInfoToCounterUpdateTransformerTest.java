@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.apache.beam.runners.dataflow.worker.fn.control;
 
 import static org.junit.Assert.assertEquals;
@@ -23,11 +40,9 @@ import org.mockito.MockitoAnnotations;
 
 public class UserMonitoringInfoToCounterUpdateTransformerTest {
 
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
+  @Rule public final ExpectedException exception = ExpectedException.none();
 
-  @Mock
-  private SpecMonitoringInfoValidator mockSpecValidator;
+  @Mock private SpecMonitoringInfoValidator mockSpecValidator;
 
   @Before
   public void setUp() throws Exception {
@@ -47,8 +62,8 @@ public class UserMonitoringInfoToCounterUpdateTransformerTest {
   @Test
   public void testTransformThrowsIfMonitoringInfoWithWrongUrnPrefixReceived() {
     Map<String, DataflowStepContext> stepContextMapping = new HashMap<>();
-    MonitoringInfo monitoringInfo = MonitoringInfo.newBuilder()
-        .setUrn("beam:metric:element_count:v1").build();
+    MonitoringInfo monitoringInfo =
+        MonitoringInfo.newBuilder().setUrn("beam:metric:element_count:v1").build();
     UserMonitoringInfoToCounterUpdateTransformer testObject =
         new UserMonitoringInfoToCounterUpdateTransformer(mockSpecValidator, stepContextMapping);
     when(mockSpecValidator.validate(any())).thenReturn(Optional.empty());
@@ -60,9 +75,11 @@ public class UserMonitoringInfoToCounterUpdateTransformerTest {
   @Test
   public void testTransformReturnsNullIfMonitoringInfoWithUnknownPTransformLabelPresent() {
     Map<String, DataflowStepContext> stepContextMapping = new HashMap<>();
-    MonitoringInfo monitoringInfo = MonitoringInfo.newBuilder()
-        .setUrn("beam:metric:user:anyNamespace:anyName").putLabels("PTRANSFORM", "anyValue")
-        .build();
+    MonitoringInfo monitoringInfo =
+        MonitoringInfo.newBuilder()
+            .setUrn("beam:metric:user:anyNamespace:anyName")
+            .putLabels("PTRANSFORM", "anyValue")
+            .build();
     UserMonitoringInfoToCounterUpdateTransformer testObject =
         new UserMonitoringInfoToCounterUpdateTransformer(mockSpecValidator, stepContextMapping);
     when(mockSpecValidator.validate(any())).thenReturn(Optional.empty());
@@ -72,15 +89,17 @@ public class UserMonitoringInfoToCounterUpdateTransformerTest {
   @Test
   public void testTransformReturnsValidCounterUpdateWhenValidUserMonitoringInfoReceived() {
     Map<String, DataflowStepContext> stepContextMapping = new HashMap<>();
-    NameContext nc = NameContext
-        .create("anyStageName", "anyOriginalName", "anySystemName", "anyUserName");
+    NameContext nc =
+        NameContext.create("anyStageName", "anyOriginalName", "anySystemName", "anyUserName");
     DataflowStepContext dsc = mock(DataflowStepContext.class);
     when(dsc.getNameContext()).thenReturn(nc);
     stepContextMapping.put("anyValue", dsc);
 
-    MonitoringInfo monitoringInfo = MonitoringInfo.newBuilder()
-        .setUrn("beam:metric:user:anyNamespace:anyName").putLabels("PTRANSFORM", "anyValue")
-        .build();
+    MonitoringInfo monitoringInfo =
+        MonitoringInfo.newBuilder()
+            .setUrn("beam:metric:user:anyNamespace:anyName")
+            .putLabels("PTRANSFORM", "anyValue")
+            .build();
     UserMonitoringInfoToCounterUpdateTransformer testObject =
         new UserMonitoringInfoToCounterUpdateTransformer(mockSpecValidator, stepContextMapping);
     when(mockSpecValidator.validate(any())).thenReturn(Optional.empty());

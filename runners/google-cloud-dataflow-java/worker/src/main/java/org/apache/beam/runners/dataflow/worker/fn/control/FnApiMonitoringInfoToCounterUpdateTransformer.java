@@ -44,9 +44,7 @@ public class FnApiMonitoringInfoToCounterUpdateTransformer
     }
   }
 
-  /**
-   * Allows for injection of user and generic counter transformers for more convenient testing.
-   */
+  /** Allows for injection of user and generic counter transformers for more convenient testing. */
   @VisibleForTesting
   public FnApiMonitoringInfoToCounterUpdateTransformer(
       UserMonitoringInfoToCounterUpdateTransformer userCounterTransformer,

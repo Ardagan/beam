@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.apache.beam.runners.dataflow.worker.fn.control;
 
 import static org.junit.Assert.assertEquals;
@@ -23,11 +40,9 @@ import org.mockito.MockitoAnnotations;
 
 public class MSecMonitoringInfoToCounterUpdateTransformerTest {
 
-  @Rule
-  public final ExpectedException exception = ExpectedException.none();
+  @Rule public final ExpectedException exception = ExpectedException.none();
 
-  @Mock
-  private SpecMonitoringInfoValidator mockSpecValidator;
+  @Mock private SpecMonitoringInfoValidator mockSpecValidator;
 
   @Before
   public void setUp() throws Exception {
@@ -42,14 +57,16 @@ public class MSecMonitoringInfoToCounterUpdateTransformerTest {
     Map<String, DataflowStepContext> stepContextMapping = new HashMap<>();
 
     MSecMonitoringInfoToCounterUpdateTransformer testObject =
-        new MSecMonitoringInfoToCounterUpdateTransformer(mockSpecValidator, stepContextMapping,
-            counterNameMapping);
+        new MSecMonitoringInfoToCounterUpdateTransformer(
+            mockSpecValidator, stepContextMapping, counterNameMapping);
 
     Optional<String> error = Optional.of("Error text");
     when(mockSpecValidator.validate(any())).thenReturn(error);
 
-    MonitoringInfo monitoringInfo = MonitoringInfo.newBuilder()
-        .setUrn("beam:metric:pardo_execution_time:start_bundle_msecs:v1:invalid").build();
+    MonitoringInfo monitoringInfo =
+        MonitoringInfo.newBuilder()
+            .setUrn("beam:metric:pardo_execution_time:start_bundle_msecs:v1:invalid")
+            .build();
     assertEquals(null, testObject.transform(monitoringInfo));
   }
 
@@ -59,12 +76,14 @@ public class MSecMonitoringInfoToCounterUpdateTransformerTest {
     counterNameMapping.put("beam:counter:supported", "supportedCounter");
 
     Map<String, DataflowStepContext> stepContextMapping = new HashMap<>();
-    MonitoringInfo monitoringInfo = MonitoringInfo.newBuilder()
-        .setUrn("beam:metric:pardo_execution_time:start_bundle_msecs:v1:invalid").build();
+    MonitoringInfo monitoringInfo =
+        MonitoringInfo.newBuilder()
+            .setUrn("beam:metric:pardo_execution_time:start_bundle_msecs:v1:invalid")
+            .build();
 
     MSecMonitoringInfoToCounterUpdateTransformer testObject =
-        new MSecMonitoringInfoToCounterUpdateTransformer(mockSpecValidator, stepContextMapping,
-            counterNameMapping);
+        new MSecMonitoringInfoToCounterUpdateTransformer(
+            mockSpecValidator, stepContextMapping, counterNameMapping);
 
     when(mockSpecValidator.validate(any())).thenReturn(Optional.empty());
 
@@ -84,10 +103,11 @@ public class MSecMonitoringInfoToCounterUpdateTransformerTest {
 
     when(mockSpecValidator.validate(any())).thenReturn(Optional.empty());
 
-    MonitoringInfo monitoringInfo = MonitoringInfo.newBuilder()
-        .setUrn("beam:counter:unsupported")
-        .putLabels("PTRANSFORM", "anyValue")
-        .build();
+    MonitoringInfo monitoringInfo =
+        MonitoringInfo.newBuilder()
+            .setUrn("beam:counter:unsupported")
+            .putLabels("PTRANSFORM", "anyValue")
+            .build();
 
     exception.expect(RuntimeException.class);
     testObject.transform(monitoringInfo);
@@ -100,21 +120,23 @@ public class MSecMonitoringInfoToCounterUpdateTransformerTest {
     counterNameMapping.put("beam:counter:supported", "supportedCounter");
 
     Map<String, DataflowStepContext> stepContextMapping = new HashMap<>();
-    NameContext nc = NameContext
-        .create("anyStageName", "anyOriginalName", "anySystemName", "anyUserName");
+    NameContext nc =
+        NameContext.create("anyStageName", "anyOriginalName", "anySystemName", "anyUserName");
     DataflowStepContext dsc = mock(DataflowStepContext.class);
     when(dsc.getNameContext()).thenReturn(nc);
     stepContextMapping.put("anyValue", dsc);
 
     MSecMonitoringInfoToCounterUpdateTransformer testObject =
-        new MSecMonitoringInfoToCounterUpdateTransformer(mockSpecValidator, stepContextMapping,
-            counterNameMapping);
+        new MSecMonitoringInfoToCounterUpdateTransformer(
+            mockSpecValidator, stepContextMapping, counterNameMapping);
     when(mockSpecValidator.validate(any())).thenReturn(Optional.empty());
 
     // Execute
-    MonitoringInfo monitoringInfo = MonitoringInfo.newBuilder()
-        .setUrn("beam:counter:supported").putLabels("PTRANSFORM", "anyValue")
-        .build();
+    MonitoringInfo monitoringInfo =
+        MonitoringInfo.newBuilder()
+            .setUrn("beam:counter:supported")
+            .putLabels("PTRANSFORM", "anyValue")
+            .build();
 
     CounterUpdate result = testObject.transform(monitoringInfo);
 
@@ -135,11 +157,11 @@ public class MSecMonitoringInfoToCounterUpdateTransformerTest {
     MSecMonitoringInfoToCounterUpdateTransformer testObject =
         new MSecMonitoringInfoToCounterUpdateTransformer(mockSpecValidator, stepContextMapping);
     Map<String, String> result = testObject.createKnownUrnToCounterNameMapping();
-    assertEquals("process-msecs",
-        result.get("beam:metric:pardo_execution_time:process_bundle_msecs:v1"));
-    assertEquals("finish-msecs",
-        result.get("beam:metric:pardo_execution_time:finish_bundle_msecs:v1"));
-    assertEquals("start-msecs",
-        result.get("beam:metric:pardo_execution_time:start_bundle_msecs:v1"));
+    assertEquals(
+        "process-msecs", result.get("beam:metric:pardo_execution_time:process_bundle_msecs:v1"));
+    assertEquals(
+        "finish-msecs", result.get("beam:metric:pardo_execution_time:finish_bundle_msecs:v1"));
+    assertEquals(
+        "start-msecs", result.get("beam:metric:pardo_execution_time:start_bundle_msecs:v1"));
   }
 }
