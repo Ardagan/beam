@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 /**
  * MonitoringInfo to CounterUpdate transformer capable to transform MSec counters.
  *
- * Use getSupportedUrns to get all urns this class supports.
+ * <p>Use getSupportedUrns to get all urns this class supports.
  */
 public class MSecMonitoringInfoToCounterUpdateTransformer
     implements MonitoringInfoToCounterUpdateTransformer {

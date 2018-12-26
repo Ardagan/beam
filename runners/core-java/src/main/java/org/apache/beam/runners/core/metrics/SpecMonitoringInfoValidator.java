@@ -33,8 +33,8 @@ public class SpecMonitoringInfoValidator {
   public SpecMonitoringInfoValidator() {
     specs =
         Arrays.stream(MonitoringInfoSpecs.Enum.values())
-            // todomigryz: I believe this is outdated check. Re-run tests and verify it works.
-            // .filter(x -> !(x).name().equals("UNRECOGNIZED"))
+            // Filtering default value for "unknown" Enums. Coming from proto implementation.
+            .filter(x -> !x.name().equals("UNRECOGNIZED"))
             .map(
                 x -> x.getValueDescriptor().getOptions().getExtension(BeamFnApi.monitoringInfoSpec))
             .toArray(size -> new MonitoringInfoSpec[size]);
