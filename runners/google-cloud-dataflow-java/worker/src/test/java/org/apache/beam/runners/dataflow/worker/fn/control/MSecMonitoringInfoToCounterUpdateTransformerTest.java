@@ -152,7 +152,7 @@ public class MSecMonitoringInfoToCounterUpdateTransformerTest {
   }
 
   @Test
-  public void testCreateKnownUrnToCounterNameMappingRetursExpectedValues() {
+  public void testCreateKnownUrnToCounterNameMappingReturnsExpectedValues() {
     Map<String, DataflowStepContext> stepContextMapping = new HashMap<>();
     MSecMonitoringInfoToCounterUpdateTransformer testObject =
         new MSecMonitoringInfoToCounterUpdateTransformer(mockSpecValidator, stepContextMapping);

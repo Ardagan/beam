@@ -352,7 +352,7 @@ public class BeamFnMapTaskExecutor extends DataflowMapTaskExecutor {
         updateMetricsDeprecated(metrics);
 
         // todo(migryz): utilize monitoringInfos here.
-        // Requires Count metrics to be implemented.
+        // Requires Element Count metrics to be implemented.
         double elementsConsumed = bundleProcessOperation.getInputElementsConsumed(metrics);
 
         grpcWriteOperationElementsProcessed.accept((int) elementsConsumed);

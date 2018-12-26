@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import org.apache.beam.runners.core.metrics.MetricsContainerImpl;
 import org.apache.beam.runners.dataflow.util.TimeUtil;
@@ -272,54 +273,34 @@ public class WorkItemStatusClient {
       return;
     }
 
-    // Checking against boolean, because getCompleted can return null?
+    // Checking against boolean, because getCompleted can return null
     boolean isFinalUpdate = Boolean.TRUE.equals(status.getCompleted());
 
     Map<Object, CounterUpdate> counterUpdatesMap = new HashMap<>();
+
+    final Consumer<CounterUpdate> appendCounterUpdate =
+        x ->
+            counterUpdatesMap.put(
+                x.getStructuredNameAndMetadata() == null
+                    ? x.getNameAndKind()
+                    : x.getStructuredNameAndMetadata(),
+                x);
+
     // Output counters
-    extractCounters(worker.getOutputCounters())
-        .forEach(
-            x ->
-                counterUpdatesMap.put(
-                    x.getStructuredNameAndMetadata() == null
-                        ? x.getNameAndKind()
-                        : x.getStructuredNameAndMetadata(),
-                    x));
+    extractCounters(worker.getOutputCounters()).forEach(appendCounterUpdate);
 
     // User metrics reported in Worker
-    extractMetrics(isFinalUpdate)
-        .forEach(
-            x ->
-                counterUpdatesMap.put(
-                    x.getStructuredNameAndMetadata() == null
-                        ? x.getNameAndKind()
-                        : x.getStructuredNameAndMetadata(),
-                    x));
+    extractMetrics(isFinalUpdate).forEach(appendCounterUpdate);
 
     // counterUpdatesListBuilder.addAll(extractMetrics(isFinalUpdate));
     // MSec counters reported in worker
-    extractMsecCounters(isFinalUpdate)
-        .forEach(
-            x ->
-                counterUpdatesMap.put(
-                    x.getStructuredNameAndMetadata() == null
-                        ? x.getNameAndKind()
-                        : x.getStructuredNameAndMetadata(),
-                    x));
+    extractMsecCounters(isFinalUpdate).forEach(appendCounterUpdate);
 
     // Metrics reported in SDK runner.
     // This includes all different kinds of metrics coming from SDK.
     // Keep in mind that these metrics might contain different types of counter names:
     // i.e. structuredNameAndMetadata and nameAndKind
-    worker
-        .extractMetricUpdates()
-        .forEach(
-            x ->
-                counterUpdatesMap.put(
-                    x.getStructuredNameAndMetadata() == null
-                        ? x.getNameAndKind()
-                        : x.getStructuredNameAndMetadata(),
-                    x));
+    worker.extractMetricUpdates().forEach(appendCounterUpdate);
 
     status.setCounterUpdates(ImmutableList.copyOf(counterUpdatesMap.values()));
   }

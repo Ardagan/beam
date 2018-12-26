@@ -32,6 +32,11 @@ import org.apache.beam.runners.dataflow.worker.counters.DataflowCounterUpdateExt
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * MonitoringInfo to CounterUpdate transformer capable to transform MSec counters.
+ *
+ * Use getSupportedUrns to get all urns this class supports.
+ */
 public class MSecMonitoringInfoToCounterUpdateTransformer
     implements MonitoringInfoToCounterUpdateTransformer {
 
