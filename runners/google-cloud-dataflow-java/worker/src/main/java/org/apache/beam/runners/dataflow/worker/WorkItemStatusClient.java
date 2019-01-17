@@ -292,7 +292,6 @@ public class WorkItemStatusClient {
     // User metrics reported in Worker
     extractMetrics(isFinalUpdate).forEach(appendCounterUpdate);
 
-    // counterUpdatesListBuilder.addAll(extractMetrics(isFinalUpdate));
     // MSec counters reported in worker
     extractMsecCounters(isFinalUpdate).forEach(appendCounterUpdate);
 

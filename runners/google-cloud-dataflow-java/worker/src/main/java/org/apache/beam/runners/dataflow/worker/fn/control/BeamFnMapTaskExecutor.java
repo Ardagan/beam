@@ -505,7 +505,6 @@ public class BeamFnMapTaskExecutor extends DataflowMapTaskExecutor {
       // Set final metrics to precisely the values in this update. This should overwrite, not
       // be combined with, all prior updates.
       counterUpdates.clear();
-
       deprecatedCounterUpdates.clear();
       deprecatedDistributionUpdates.clear();
       deprecatedGaugeUpdates.clear();
