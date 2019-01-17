@@ -25,6 +25,11 @@ import org.apache.beam.model.fnexecution.v1.BeamFnApi.MonitoringInfo;
 import org.apache.beam.runners.core.metrics.SpecMonitoringInfoValidator;
 import org.apache.beam.runners.dataflow.worker.DataflowExecutionContext.DataflowStepContext;
 
+/**
+ * Generic MonitoringInfo to CounterUpdate transformer for FnApi.
+ *
+ * Delegates work to other transformers implementations for relevant counter types.
+ */
 public class FnApiMonitoringInfoToCounterUpdateTransformer
     implements MonitoringInfoToCounterUpdateTransformer {
 
