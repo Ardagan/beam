@@ -81,29 +81,35 @@ public class DataflowPipelineJob implements PipelineResult {
 
   protected BiMap<AppliedPTransform<?, ?, ?>, String> transformStepNames;
 
-  /** The Metric Updates retrieved after the job was in a terminal state. */
-  private List<MetricUpdate> terminalMetricUpdates;
-
   /** The latest timestamp up to which job messages have been retrieved. */
   private long lastTimestamp = Long.MIN_VALUE;
 
   /** The polling interval for job status and messages information. */
   static final Duration MESSAGES_POLLING_INTERVAL = Duration.standardSeconds(2);
 
+  /** Max interval of polling for job status and messages information */
+  static final Duration MESSAGES_POLLING_MAX_INTERVAL = Duration.standardMinutes(1);
+
   static final Duration STATUS_POLLING_INTERVAL = Duration.standardSeconds(2);
 
   static final double DEFAULT_BACKOFF_EXPONENT = 1.5;
 
   /** The amount of polling retries for job status and messages information. */
-  static final int MESSAGES_POLLING_RETRIES = 11;
+  static final int MESSAGES_POLLING_RETRIES = 20;
 
   static final int STATUS_POLLING_RETRIES = 4;
 
+  /**
+   * Totals default wait time to ~20 minutes. Dataflow can take up to 12+ minutes to schedule
+   * pipeline.
+   */
   private static final FluentBackoff MESSAGES_BACKOFF_FACTORY =
       FluentBackoff.DEFAULT
           .withInitialBackoff(MESSAGES_POLLING_INTERVAL)
+          .withMaxBackoff(MESSAGES_POLLING_MAX_INTERVAL)
           .withMaxRetries(MESSAGES_POLLING_RETRIES)
           .withExponent(DEFAULT_BACKOFF_EXPONENT);
+
   protected static final FluentBackoff STATUS_BACKOFF_FACTORY =
       FluentBackoff.DEFAULT
           .withInitialBackoff(STATUS_POLLING_INTERVAL)
@@ -447,6 +453,7 @@ public class DataflowPipelineJob implements PipelineResult {
       Job job = getJobWithRetries(attempts, sleeper);
       return MonitoringUtil.toState(job.getCurrentState());
     } catch (IOException exn) {
+
       // The only IOException that getJobWithRetries is permitted to throw is the final IOException
       // that caused the failure of retry. Other exceptions are wrapped in an unchecked exceptions
       // and will propagate.
